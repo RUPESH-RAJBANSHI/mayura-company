@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import connectDB from "../../../config/db";
 import Admin from "../../../config/models/Admin";
-
+import bcrypt from "bcryptjs";
 
 export async function POST(request) {
   try {
@@ -18,7 +18,7 @@ export async function POST(request) {
           success: false,
           message: "Name, email and password are required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -31,15 +31,18 @@ export async function POST(request) {
           success: false,
           message: "Admin already exists",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
+
+    // Hash password before saving
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create new admin
     const admin = await Admin.create({
       name,
       email,
-      password,
+      password: hashedPassword,
       role: role || "companyadmin",
     });
 
@@ -49,7 +52,7 @@ export async function POST(request) {
         message: "Admin registered successfully",
         admin,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     return NextResponse.json(
@@ -57,7 +60,7 @@ export async function POST(request) {
         success: false,
         message: error.message,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
