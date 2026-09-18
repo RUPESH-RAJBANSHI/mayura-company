@@ -453,14 +453,14 @@ export default function AdminsPage() {
                   required
                   value={form.name}
                   onChange={(event) => handleChange("name", event.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 text-black"
                   placeholder="Enter admin name"
                 />
               </div>
 
               {/* Email */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
+                <label className="mb-1 block text-sm font-medium text-black">
                   Email
                 </label>
 
@@ -471,7 +471,7 @@ export default function AdminsPage() {
                   onChange={(event) =>
                     handleChange("email", event.target.value)
                   }
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 text-black"
                   placeholder="Enter admin email"
                 />
               </div>
@@ -479,7 +479,7 @@ export default function AdminsPage() {
               {/* Password */}
               {!editingAdmin && (
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                  <label className="mb-1 block text-sm font-medium text-black">
                     Password
                   </label>
 
@@ -491,7 +491,7 @@ export default function AdminsPage() {
                     onChange={(event) =>
                       handleChange("password", event.target.value)
                     }
-                    className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+                    className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 text-black"
                     placeholder="Enter password"
                   />
                 </div>
@@ -499,7 +499,7 @@ export default function AdminsPage() {
 
               {/* Role */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
+                <label className="mb-1 block text-sm font-medium text-black">
                   Role
                 </label>
 
@@ -511,7 +511,7 @@ export default function AdminsPage() {
                       event.target.value as "superadmin" | "companyadmin",
                     )
                   }
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 text-black"
                 >
                   <option value="companyadmin">Company Admin</option>
                   <option value="superadmin">Super Admin</option>

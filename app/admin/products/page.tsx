@@ -488,7 +488,7 @@ export default function ProductsPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* NAME */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
+                <label className="mb-1 block text-sm font-medium text-black">
                   Product Name
                 </label>
 
@@ -497,14 +497,14 @@ export default function ProductsPage() {
                   required
                   value={form.name}
                   onChange={(event) => handleChange("name", event.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 text-black"
                   placeholder="Example: Mayura School Management System"
                 />
               </div>
 
               {/* DESCRIPTION */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
+                <label className="mb-1 block text-sm font-medium text-black">
                   Description
                 </label>
 
@@ -515,14 +515,14 @@ export default function ProductsPage() {
                   onChange={(event) =>
                     handleChange("description", event.target.value)
                   }
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 text-black"
                   placeholder="Describe your product..."
                 />
               </div>
 
               {/* CATEGORY */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
+                <label className="mb-1 block text-sm font-medium text-black">
                   Category
                 </label>
 
@@ -532,7 +532,7 @@ export default function ProductsPage() {
                   onChange={(event) =>
                     handleChange("category", event.target.value)
                   }
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 text-black"
                 >
                   <option value="">Select category</option>
 
@@ -556,7 +556,7 @@ export default function ProductsPage() {
 
               {/* TECHNOLOGIES */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
+                <label className="mb-1 block text-sm font-medium text-black">
                   Technologies
                 </label>
 
@@ -567,14 +567,14 @@ export default function ProductsPage() {
                   onChange={(event) =>
                     handleChange("technologies", event.target.value)
                   }
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 text-black"
                   placeholder="Example: Next.js, Node.js, MongoDB"
                 />
               </div>
 
               {/* PRODUCT URL */}
               <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700">
+                <label className="mb-1 block text-sm font-medium text-black">
                   Product URL
                 </label>
 
@@ -584,7 +584,7 @@ export default function ProductsPage() {
                   onChange={(event) =>
                     handleChange("productUrl", event.target.value)
                   }
-                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500"
+                  className="w-full rounded-lg border border-gray-300 px-4 py-3 outline-none focus:border-blue-500 text-black"
                   placeholder="https://example.com"
                 />
               </div>
