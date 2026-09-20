@@ -3,9 +3,7 @@ import connectDB from "../../config/db";
 import Career from "../../config/models/Career";
 import jwt from "jsonwebtoken";
 
-// ============================
 // CHECK AUTHENTICATION
-// ============================
 function authenticate(request) {
   const token = request.cookies.get("adminToken")?.value;
 
@@ -18,9 +16,7 @@ function authenticate(request) {
   return true;
 }
 
-// ============================
 // GET ALL CAREERS
-// ============================
 export async function GET(request) {
   try {
     await connectDB();
@@ -52,9 +48,7 @@ export async function GET(request) {
   }
 }
 
-// ============================
 // CREATE CAREER
-// ============================
 export async function POST(request) {
   try {
     await connectDB();
