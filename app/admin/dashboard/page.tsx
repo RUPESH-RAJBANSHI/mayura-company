@@ -126,6 +126,13 @@ export default function AdminDashboard() {
             <span>📅</span>
             Meetings
           </a>
+          <a
+            href="/admin/partnership"
+            className="mb-2 flex items-center gap-3 rounded-lg px-4 py-3 text-sm text-slate-300 hover:bg-slate-800"
+          > 
+            <span>🤝</span>
+            Partnership
+          </a>
         </nav>
 
         {/* Logout */}
@@ -325,7 +332,7 @@ export default function AdminDashboard() {
                 className="rounded-xl border bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
               >
                 <div className="mb-3 text-2xl">👥</div>
-                <h3 className="font-semibold">Manage Admins</h3>
+                <h3 className="font-semibold text-gray-500">Manage Admins</h3>
                 <p className="mt-1 text-xs text-gray-500">
                   Add, update and remove admins
                 </p>
@@ -336,7 +343,7 @@ export default function AdminDashboard() {
                 className="rounded-xl border bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
               >
                 <div className="mb-3 text-2xl">📦</div>
-                <h3 className="font-semibold">Add Product</h3>
+                <h3 className="font-semibold text-gray-500">Add Product</h3>
                 <p className="mt-1 text-xs text-gray-500">
                   Add your company software
                 </p>
@@ -347,7 +354,7 @@ export default function AdminDashboard() {
                 className="rounded-xl border bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
               >
                 <div className="mb-3 text-2xl">💼</div>
-                <h3 className="font-semibold">Create Job</h3>
+                <h3 className="font-semibold text-gray-500">Create Job</h3>
                 <p className="mt-1 text-xs text-gray-500">
                   Publish a new vacancy
                 </p>
@@ -358,7 +365,7 @@ export default function AdminDashboard() {
                 className="rounded-xl border bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"
               >
                 <div className="mb-3 text-2xl">📅</div>
-                <h3 className="font-semibold">Meetings</h3>
+                <h3 className="font-semibold text-gray-500">Meetings</h3>
                 <p className="mt-1 text-xs text-gray-500">
                   View meeting requests
                 </p>
