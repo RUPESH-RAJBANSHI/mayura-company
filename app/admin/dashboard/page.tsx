@@ -9,14 +9,25 @@ type Admin = {
   role: "superadmin" | "companyadmin";
   status: boolean;
 };
+type Stats = {
+  totalAdmins: number;
+  activeAdmins: number;
+  totalProducts: number;
+  totalQueries: number;
+  totalMeetings: number;
+  totalPartnerships: number;
+};
 
 export default function AdminDashboard() {
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [loading, setLoading] = useState(true);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
 
   useEffect(() => {
     fetchAdmins();
+    fetchStats();
   }, []);
 
   const fetchAdmins = async () => {
@@ -40,6 +51,29 @@ export default function AdminDashboard() {
       console.error("Failed to fetch admins:", error);
     } finally {
       setLoading(false);
+    }
+  };
+  const fetchStats = async () => {
+    try {
+      const response = await fetch("/api/admin/stats", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (response.status === 401) {
+        window.location.href = "/admin/login";
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setStats(data.stats);
+      }
+    } catch (error) {
+      console.error("Failed to fetch dashboard stats:", error);
+    } finally {
+      setStatsLoading(false);
     }
   };
 
@@ -129,7 +163,7 @@ export default function AdminDashboard() {
           <a
             href="/admin/partnership"
             className="mb-2 flex items-center gap-3 rounded-lg px-4 py-3 text-sm text-slate-300 hover:bg-slate-800"
-          > 
+          >
             <span>🤝</span>
             Partnership
           </a>
@@ -221,7 +255,9 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Products</p>
-                  <h3 className="mt-2 text-3xl font-bold text-gray-900">0</h3>
+                  <h3 className="mt-2 text-3xl font-bold text-gray-900">
+                    {statsLoading ? "..." : stats?.totalProducts || 0}
+                  </h3>
                 </div>
 
                 <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100 text-xl">
@@ -235,11 +271,42 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Queries</p>
-                  <h3 className="mt-2 text-3xl font-bold text-gray-900">0</h3>
+                  <h3 className="mt-2 text-3xl font-bold text-gray-900">
+                    {statsLoading ? "..." : stats?.totalQueries || 0}
+                  </h3>
                 </div>
 
                 <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100 text-xl">
                   💬
+                </div>
+              </div>
+            </div>
+            {/* Meetings */}
+            <div className="rounded-xl border bg-white p-6 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Meetings</p>
+                  <h3 className="mt-2 text-3xl font-bold text-gray-900">
+                    {statsLoading ? "..." : (stats?.totalMeetings ?? 0)}
+                  </h3>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-blue-100 text-xl">
+                  📅
+                </div>
+              </div>
+            </div>
+
+            {/* Partnerships */}
+            <div className="rounded-xl border bg-white p-6 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Partnerships</p>
+                  <h3 className="mt-2 text-3xl font-bold text-gray-900">
+                    {statsLoading ? "..." : (stats?.totalPartnerships ?? 0)}
+                  </h3>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-purple-100 text-xl">
+                  🤝
                 </div>
               </div>
             </div>
@@ -326,7 +393,7 @@ export default function AdminDashboard() {
               Quick Actions
             </h2>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               <a
                 href="/admin/admins"
                 className="rounded-xl border bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md"

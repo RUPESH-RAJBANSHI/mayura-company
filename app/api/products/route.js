@@ -2,11 +2,9 @@ import { NextResponse } from "next/server";
 import connectDB from "../../config/db";
 
 import jwt from "jsonwebtoken";
-import Product from "../../config/models/product";
+import Product from "../../config/models/Product";
 
-// ============================
 // GET ALL PRODUCTS
-// ============================
 export async function GET(request) {
   try {
     await connectDB();
@@ -50,9 +48,7 @@ export async function GET(request) {
   }
 }
 
-// ============================
 // CREATE PRODUCT
-// ============================
 export async function POST(request) {
   try {
     await connectDB();
