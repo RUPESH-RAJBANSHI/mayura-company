@@ -9,17 +9,17 @@ function authenticate(request) {
   const token = request.cookies.get("adminToken")?.value;
 
   if (!token) {
-    return false;
+    throw new Error("Unauthorized");
   }
 
-  jwt.verify(token, process.env.JWT_SECRET);
-
-  return true;
+  try {
+    return jwt.verify(token, process.env.JWT_SECRET);
+  } catch (error) {
+    throw new Error("Unauthorized");
+  }
 }
 
-// ============================
 // GET SINGLE CAREER
-// ============================
 export async function GET(request, { params }) {
   try {
     await connectDB();
@@ -70,9 +70,7 @@ export async function GET(request, { params }) {
   }
 }
 
-// ============================
 // UPDATE CAREER
-// ============================
 export async function PUT(request, { params }) {
   try {
     await connectDB();
@@ -137,7 +135,7 @@ export async function PUT(request, { params }) {
         status: status ?? true,
       },
       {
-        new: true,
+        returnDocument: "after",
         runValidators: true,
       },
     );
@@ -173,9 +171,7 @@ export async function PUT(request, { params }) {
   }
 }
 
-// ============================
 // DELETE CAREER
-// ============================
 export async function DELETE(request, { params }) {
   try {
     await connectDB();
