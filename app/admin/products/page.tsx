@@ -47,9 +47,7 @@ export default function ProductsPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  // =========================
   // FETCH PRODUCTS
-  // =========================
   const fetchProducts = async () => {
     try {
       setLoading(true);
@@ -86,9 +84,7 @@ export default function ProductsPage() {
     fetchProducts();
   }, []);
 
-  // =========================
   // OPEN ADD MODAL
-  // =========================
   const openAddModal = () => {
     setEditingProduct(null);
     setForm(emptyForm);
@@ -97,9 +93,7 @@ export default function ProductsPage() {
     setShowModal(true);
   };
 
-  // =========================
   // OPEN EDIT MODAL
-  // =========================
   const openEditModal = (product: Product) => {
     setEditingProduct(product);
 
@@ -117,9 +111,7 @@ export default function ProductsPage() {
     setShowModal(true);
   };
 
-  // =========================
   // CLOSE MODAL
-  // =========================
   const closeModal = () => {
     if (saving) return;
 
@@ -129,9 +121,7 @@ export default function ProductsPage() {
     setError("");
   };
 
-  // =========================
   // HANDLE INPUT
-  // =========================
   const handleChange = (field: keyof ProductForm, value: string | boolean) => {
     setForm((previous) => ({
       ...previous,
@@ -139,9 +129,7 @@ export default function ProductsPage() {
     }));
   };
 
-  // =========================
   // ADD / UPDATE PRODUCT
-  // =========================
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
@@ -196,9 +184,7 @@ export default function ProductsPage() {
     }
   };
 
-  // =========================
   // DELETE PRODUCT
-  // =========================
   const deleteProduct = async (id: string) => {
     const confirmed = window.confirm(
       "Are you sure you want to delete this product?",
@@ -238,9 +224,7 @@ export default function ProductsPage() {
     }
   };
 
-  // =========================
   // TOGGLE STATUS
-  // =========================
   const toggleStatus = async (product: Product) => {
     try {
       setError("");
@@ -298,7 +282,7 @@ export default function ProductsPage() {
             </h1>
 
             <p className="mt-1 text-gray-500">
-              Manage software products developed by MayuraERP.
+              Manage software products developed by Company.
             </p>
           </div>
 

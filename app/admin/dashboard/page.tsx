@@ -17,6 +17,15 @@ type Stats = {
   totalMeetings: number;
   totalPartnerships: number;
 };
+type Query = {
+  _id: string;
+  name: string;
+  email: string;
+  subject: string;
+  message: string;
+  status: "New" | "Read" | "Replied";
+  createdAt: string;
+};
 
 export default function AdminDashboard() {
   const [admins, setAdmins] = useState<Admin[]>([]);
@@ -24,10 +33,13 @@ export default function AdminDashboard() {
   const [loggingOut, setLoggingOut] = useState(false);
   const [stats, setStats] = useState<Stats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
+  const [queries, setQueries] = useState<Query[]>([]);
+  const [queriesLoading, setQueriesLoading] = useState(true);
 
   useEffect(() => {
     fetchAdmins();
     fetchStats();
+    fetchQueries();
   }, []);
 
   const fetchAdmins = async () => {
@@ -93,6 +105,31 @@ export default function AdminDashboard() {
       console.error("Logout error:", error);
     } finally {
       setLoggingOut(false);
+    }
+  };
+  const fetchQueries = async () => {
+    try {
+      setQueriesLoading(true);
+
+      const response = await fetch("/api/queries", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (response.status === 401) {
+        window.location.href = "/admin/login";
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setQueries(data.queries.slice(0, 5));
+      }
+    } catch (error) {
+      console.error("Failed to fetch queries:", error);
+    } finally {
+      setQueriesLoading(false);
     }
   };
 
@@ -385,6 +422,86 @@ export default function AdminDashboard() {
                 </table>
               )}
             </div>
+          </div>
+
+          {/* Recent Queries */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">
+                  Recent Queries
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Latest messages from visitors
+                </p>
+              </div>
+
+              <a
+                href="/admin/queries"
+                className="text-sm font-semibold text-blue-600 hover:text-blue-800"
+              >
+                View All →
+              </a>
+            </div>
+
+            {queriesLoading ? (
+              <p className="text-gray-500 text-sm">Loading queries...</p>
+            ) : queries.length === 0 ? (
+              <p className="text-gray-500 text-sm">No queries found.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-gray-200 text-sm text-gray-500">
+                      <th className="py-3 pr-4">Name</th>
+                      <th className="py-3 pr-4">Email</th>
+                      <th className="py-3 pr-4">Subject</th>
+                      <th className="py-3 pr-4">Status</th>
+                      <th className="py-3">Date</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {queries.map((query) => (
+                      <tr
+                        key={query._id}
+                        className="border-b border-gray-100 hover:bg-gray-50"
+                      >
+                        <td className="py-4 pr-4 font-medium text-gray-800">
+                          {query.name}
+                        </td>
+
+                        <td className="py-4 pr-4 text-sm text-gray-600">
+                          {query.email}
+                        </td>
+
+                        <td className="py-4 pr-4 text-sm text-gray-700">
+                          {query.subject}
+                        </td>
+
+                        <td className="py-4 pr-4">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                              query.status === "New"
+                                ? "bg-blue-100 text-blue-700"
+                                : query.status === "Read"
+                                  ? "bg-yellow-100 text-yellow-700"
+                                  : "bg-green-100 text-green-700"
+                            }`}
+                          >
+                            {query.status}
+                          </span>
+                        </td>
+
+                        <td className="py-4 text-sm text-gray-600 whitespace-nowrap">
+                          {new Date(query.createdAt).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
           {/* Quick Actions */}
