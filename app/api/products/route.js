@@ -5,25 +5,11 @@ import jwt from "jsonwebtoken";
 import Product from "../../config/models/Product";
 
 // GET ALL PRODUCTS
-export async function GET(request) {
+export async function GET() {
   try {
     await connectDB();
 
-    const token = request.cookies.get("adminToken")?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Unauthorized. Please login first.",
-        },
-        { status: 401 },
-      );
-    }
-
-    jwt.verify(token, process.env.JWT_SECRET);
-
-    const products = await Product.find().sort({
+    const products = await Product.find({ status: true }).sort({
       createdAt: -1,
     });
 

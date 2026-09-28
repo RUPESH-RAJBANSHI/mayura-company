@@ -17,6 +17,10 @@ export default function QueriesPage() {
   const [queries, setQueries] = useState<Query[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const [filterStatus, setFilterStatus] = useState<
+    "All" | "New" | "Read" | "Replied"
+  >("All");
+
   const [selectedQuery, setSelectedQuery] = useState<Query | null>(null);
   const [showModal, setShowModal] = useState(false);
 
@@ -152,6 +156,11 @@ export default function QueriesPage() {
     (query) => query.status === "Replied",
   ).length;
 
+  const filteredQueries =
+    filterStatus === "All"
+      ? queries
+      : queries.filter((query) => query.status === filterStatus);
+
   const getStatusClass = (status: Query["status"]) => {
     if (status === "New") {
       return "bg-blue-100 text-blue-700";
@@ -221,15 +230,40 @@ export default function QueriesPage() {
 
       {/* Query Table */}
       <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200">
-        <div className="border-b border-gray-200 px-5 py-4">
+        <div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-lg font-bold text-gray-900">Received Queries</h2>
+
+          <div className="flex items-center gap-2">
+            <label
+              htmlFor="statusFilter"
+              className="text-sm font-medium text-gray-600"
+            >
+              Filter:
+            </label>
+
+            <select
+              id="statusFilter"
+              value={filterStatus}
+              onChange={(e) =>
+                setFilterStatus(
+                  e.target.value as "All" | "New" | "Read" | "Replied",
+                )
+              }
+              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+            >
+              <option value="All">All Queries</option>
+              <option value="New">New</option>
+              <option value="Read">Read</option>
+              <option value="Replied">Replied</option>
+            </select>
+          </div>
         </div>
 
         {loading ? (
           <div className="p-10 text-center text-gray-500">
             Loading queries...
           </div>
-        ) : queries.length === 0 ? (
+        ) : filteredQueries.length === 0 ? (
           <div className="p-10 text-center">
             <p className="text-lg font-semibold text-gray-700">
               No queries found
@@ -271,7 +305,7 @@ export default function QueriesPage() {
               </thead>
 
               <tbody className="divide-y divide-gray-200">
-                {queries.map((query) => (
+                {filteredQueries.map((query) => (
                   <tr
                     key={query._id}
                     className={`hover:bg-gray-50 ${
