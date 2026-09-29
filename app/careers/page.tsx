@@ -21,6 +21,19 @@ export default function CareersPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [showApplicationForm, setShowApplicationForm] = useState(false);
+  const [selectedCareer, setSelectedCareer] = useState<Career | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [applicationMessage, setApplicationMessage] = useState("");
+  const [applicationError, setApplicationError] = useState("");
+
+  const [applicationForm, setApplicationForm] = useState({
+    applicantName: "",
+    email: "",
+    phone: "",
+    coverLetter: "",
+  });
+
   useEffect(() => {
     const fetchCareers = async () => {
       try {
@@ -64,6 +77,67 @@ export default function CareersPage() {
       month: "long",
       day: "numeric",
     });
+  };
+
+  const openApplicationForm = (career: Career) => {
+    setSelectedCareer(career);
+    setApplicationMessage("");
+    setApplicationError("");
+    setApplicationForm({
+      applicantName: "",
+      email: "",
+      phone: "",
+      coverLetter: "",
+    });
+    setShowApplicationForm(true);
+  };
+
+  const handleApplicationSubmit = async (
+    e: React.FormEvent<HTMLFormElement>,
+  ) => {
+    e.preventDefault();
+
+    if (!selectedCareer) return;
+
+    try {
+      setSubmitting(true);
+      setApplicationError("");
+      setApplicationMessage("");
+
+      const response = await fetch("/api/applications", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          career: selectedCareer._id,
+          ...applicationForm,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to submit application.");
+      }
+
+      setApplicationMessage(
+        "Your application has been submitted successfully!",
+      );
+
+      setApplicationForm({
+        applicantName: "",
+        email: "",
+        phone: "",
+        coverLetter: "",
+      });
+    } catch (err) {
+      setApplicationError(
+        err instanceof Error ? err.message : "Failed to submit application.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -299,14 +373,13 @@ export default function CareersPage() {
                       </p>
                     </div>
 
-                    <Link
-                      href={`/contact?subject=Application for ${encodeURIComponent(
-                        career.title,
-                      )}`}
+                    <button
+                      type="button"
+                      onClick={() => openApplicationForm(career)}
                       className="inline-flex justify-center rounded-lg bg-blue-800 px-6 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
                     >
                       Apply Now
-                    </Link>
+                    </button>
                   </div>
                 </article>
               ))}
@@ -476,6 +549,167 @@ export default function CareersPage() {
           </div>
         </div>
       </footer>
+
+      {/* APPLICATION FORM MODAL */}
+      {showApplicationForm && selectedCareer && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
+          <div className="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between border-b border-gray-200 px-6 py-5">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-900">
+                  Apply for Position
+                </h2>
+                <p className="mt-1 text-sm text-blue-700">
+                  {selectedCareer.title}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowApplicationForm(false)}
+                className="rounded-lg p-2 text-2xl text-gray-500 hover:bg-gray-100"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <form
+              onSubmit={handleApplicationSubmit}
+              className="overflow-y-auto px-6 py-6"
+            >
+              {applicationMessage ? (
+                <div className="rounded-xl border border-green-200 bg-green-50 p-6 text-center">
+                  <div className="text-4xl">✓</div>
+                  <h3 className="mt-3 text-xl font-bold text-green-700">
+                    Application Submitted!
+                  </h3>
+                  <p className="mt-2 text-sm text-green-700">
+                    {applicationMessage}
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={() => setShowApplicationForm(false)}
+                    className="mt-5 rounded-lg bg-blue-800 px-6 py-3 font-semibold text-white hover:bg-blue-700"
+                  >
+                    Close
+                  </button>
+                </div>
+              ) : (
+                <>
+                  {applicationError && (
+                    <div className="mb-5 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                      {applicationError}
+                    </div>
+                  )}
+
+                  <div className="space-y-5">
+                    {/* Applicant Name */}
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-gray-900">
+                        Full Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={applicationForm.applicantName}
+                        onChange={(e) =>
+                          setApplicationForm((prev) => ({
+                            ...prev,
+                            applicantName: e.target.value,
+                          }))
+                        }
+                        placeholder="Enter your full name"
+                        required
+                        className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      />
+                    </div>
+
+                    {/* Email */}
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-gray-900">
+                        Email Address *
+                      </label>
+                      <input
+                        type="email"
+                        value={applicationForm.email}
+                        onChange={(e) =>
+                          setApplicationForm((prev) => ({
+                            ...prev,
+                            email: e.target.value,
+                          }))
+                        }
+                        placeholder="you@example.com"
+                        required
+                        className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      />
+                    </div>
+
+                    {/* Phone */}
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-gray-900">
+                        Phone Number *
+                      </label>
+                      <input
+                        type="tel"
+                        value={applicationForm.phone}
+                        onChange={(e) =>
+                          setApplicationForm((prev) => ({
+                            ...prev,
+                            phone: e.target.value,
+                          }))
+                        }
+                        placeholder="Enter your phone number"
+                        required
+                        className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      />
+                    </div>
+
+                    {/* Cover Letter */}
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-gray-900">
+                        Cover Letter
+                      </label>
+                      <textarea
+                        value={applicationForm.coverLetter}
+                        onChange={(e) =>
+                          setApplicationForm((prev) => ({
+                            ...prev,
+                            coverLetter: e.target.value,
+                          }))
+                        }
+                        placeholder="Tell us why you are interested in this position..."
+                        rows={6}
+                        className="w-full resize-y rounded-lg border border-gray-300 px-4 py-3 text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Buttons */}
+                  <div className="mt-7 flex flex-col-reverse gap-3 border-t border-gray-200 pt-5 sm:flex-row sm:justify-end">
+                    <button
+                      type="button"
+                      onClick={() => setShowApplicationForm(false)}
+                      className="rounded-lg border border-gray-300 px-5 py-3 font-semibold text-gray-700 hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="rounded-lg bg-blue-800 px-6 py-3 font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {submitting ? "Submitting..." : "Submit Application"}
+                    </button>
+                  </div>
+                </>
+              )}
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
