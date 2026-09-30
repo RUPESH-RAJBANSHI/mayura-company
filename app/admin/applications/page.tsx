@@ -438,7 +438,46 @@ export default function ApplicationsPage() {
             </div>
 
             {/* MODAL FOOTER */}
-            <div className="flex justify-end border-t px-6 py-4">
+            <div className="flex flex-wrap justify-between gap-3 border-t px-6 py-4">
+              <button
+                onClick={async () => {
+                  const confirmed = window.confirm(
+                    `Are you sure you want to delete the application from ${selectedApplication.applicantName}?`,
+                  );
+
+                  if (!confirmed) return;
+
+                  try {
+                    const response = await fetch(
+                      `/api/applications/${selectedApplication._id}`,
+                      {
+                        method: "DELETE",
+                        credentials: "include",
+                      },
+                    );
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                      alert(data.message || "Failed to delete application");
+                      return;
+                    }
+
+                    setApplications((prev) =>
+                      prev.filter((app) => app._id !== selectedApplication._id),
+                    );
+
+                    setSelectedApplication(null);
+                  } catch (error) {
+                    console.error("Delete application error:", error);
+                    alert("Failed to delete application");
+                  }
+                }}
+                className="rounded-lg bg-red-600 px-5 py-2 text-sm font-medium text-white hover:bg-red-700"
+              >
+                Delete Application
+              </button>
+
               <button
                 onClick={() => setSelectedApplication(null)}
                 className="rounded-lg border border-gray-300 px-5 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
