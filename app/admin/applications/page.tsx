@@ -134,19 +134,19 @@ export default function ApplicationsPage() {
       </div>
 
       {/* SEARCH + FILTER */}
-      <div className="mb-6 flex flex-col gap-3 rounded-xl bg-white p-4 shadow-sm md:flex-row">
+      <div className="mb-6 flex flex-col gap-3 rounded-xl bg-white p-4 shadow-sm md:flex-row text-gray-600">
         <input
           type="text"
           placeholder="Search applicant, email, phone or position..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm outline-none focus:border-blue-500"
+          className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm outline-none focus:border-gray-600"
         />
 
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-lg border border-gray-300 px-4 py-2 text-sm outline-none focus:border-blue-500"
+          className="rounded-lg border border-gray-300 px-4 py-2 text-sm outline-none focus:border-gray-600 text-gray-600"
         >
           <option value="All">All Status</option>
           <option value="Pending">Pending</option>
@@ -350,13 +350,64 @@ export default function ApplicationsPage() {
                   Application Status
                 </h3>
 
-                <span
-                  className={`rounded-full px-3 py-1 text-sm font-semibold ${getStatusClass(
-                    selectedApplication.status,
-                  )}`}
-                >
-                  {selectedApplication.status}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`rounded-full px-3 py-1 text-sm font-semibold ${getStatusClass(
+                      selectedApplication.status,
+                    )}`}
+                  >
+                    {selectedApplication.status}
+                  </span>
+
+                  <select
+                    value={selectedApplication.status}
+                    onChange={async (e) => {
+                      const newStatus = e.target.value;
+
+                      try {
+                        const response = await fetch(
+                          `/api/applications/${selectedApplication._id}`,
+                          {
+                            method: "PUT",
+                            headers: {
+                              "Content-Type": "application/json",
+                            },
+                            credentials: "include",
+                            body: JSON.stringify({
+                              status: newStatus,
+                            }),
+                          },
+                        );
+
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                          alert(data.message || "Failed to update status");
+                          return;
+                        }
+
+                        setSelectedApplication(data.application);
+
+                        setApplications((prev) =>
+                          prev.map((application) =>
+                            application._id === data.application._id
+                              ? data.application
+                              : application,
+                          ),
+                        );
+                      } catch (error) {
+                        console.error("Status update error:", error);
+                        alert("Failed to update application status");
+                      }
+                    }}
+                    className="rounded-lg border border-gray-800 px-3 py-2 text-sm text-gray-600"
+                  >
+                    <option value="Pending">Pending</option>
+                    <option value="Reviewed">Reviewed</option>
+                    <option value="Shortlisted">Shortlisted</option>
+                    <option value="Rejected">Rejected</option>
+                  </select>
+                </div>
               </div>
 
               <div>
