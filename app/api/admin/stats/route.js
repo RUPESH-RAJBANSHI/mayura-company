@@ -60,13 +60,18 @@ export async function GET(request) {
       Application.countDocuments(),
     ]);
 
-    // Get latest 5 applications
+    // Get latest applications
     const recentApplications = await Application.find()
       .populate({
         path: "career",
         select: "title",
         model: "Career",
       })
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+      // Get recent meetings
+      const recentMeetings = await Meeting.find()
       .sort({ createdAt: -1 })
       .limit(5);
 
@@ -84,6 +89,7 @@ export async function GET(request) {
           totalApplications,
         },
         recentApplications,
+        recentMeetings,
       },
       { status: 200 },
     );

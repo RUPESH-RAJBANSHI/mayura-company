@@ -39,6 +39,18 @@ type Application = {
   };
 };
 
+type Meeting = {
+  _id: string;
+  name: string;
+  email: string;
+  company: string;
+  date: string;
+  time: string;
+  subject: string;
+  status: "Pending" | "Confirmed" | "Completed" | "Cancelled";
+  createdAt: string;
+};
+
 export default function AdminDashboard() {
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [loading, setLoading] = useState(true);
@@ -49,12 +61,15 @@ export default function AdminDashboard() {
   const [queriesLoading, setQueriesLoading] = useState(true);
   const [applications, setApplications] = useState<Application[]>([]);
   const [applicationsLoading, setApplicationsLoading] = useState(true);
+  const [meetings, setMeetings] = useState<Meeting[]>([]);
+  const [meetingsLoading, setMeetingsLoading] = useState(true);
 
   useEffect(() => {
     fetchAdmins();
     fetchStats();
     fetchQueries();
     fetchApplications();
+    fetchMeetings();
   }, []);
 
   const fetchAdmins = async () => {
@@ -170,6 +185,31 @@ export default function AdminDashboard() {
       console.error("Failed to fetch applications:", error);
     } finally {
       setApplicationsLoading(false);
+    }
+  };
+  const fetchMeetings = async () => {
+    try {
+      setMeetingsLoading(true);
+
+      const response = await fetch("/api/admin/stats", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (response.status === 401) {
+        window.location.href = "/admin/login";
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setMeetings(data.recentMeetings || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch meetings:", error);
+    } finally {
+      setMeetingsLoading(false);
     }
   };
 
@@ -387,6 +427,20 @@ export default function AdminDashboard() {
                 </div>
               </div>
             </div>
+            {/* Applications */}
+            <div className="rounded-xl border bg-white p-6 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Applications</p>
+                  <h3 className="mt-2 text-3xl font-bold text-gray-900">
+                    {statsLoading ? "..." : (stats?.totalApplications ?? 0)}
+                  </h3>
+                </div>
+                <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100 text-xl">
+                  📄
+                </div>
+              </div>
+            </div>
           </div>
 
           {/* Admin Table */}
@@ -535,6 +589,109 @@ export default function AdminDashboard() {
 
                         <td className="py-4 text-sm text-gray-600 whitespace-nowrap">
                           {new Date(query.createdAt).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Recent Meetings */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mt-6">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Recent Meetings
+                </h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Latest meeting requests from visitors
+                </p>
+              </div>
+
+              <a
+                href="/admin/meetings"
+                className="text-sm font-medium text-blue-600 hover:text-blue-700"
+              >
+                View All →
+              </a>
+            </div>
+
+            {meetingsLoading ? (
+              <div className="py-8 text-center text-gray-500">
+                Loading meetings...
+              </div>
+            ) : meetings.length === 0 ? (
+              <div className="py-8 text-center text-gray-500">
+                No meetings found.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-gray-200 text-left">
+                      <th className="pb-3 text-sm font-medium text-gray-500">
+                        Name
+                      </th>
+                      <th className="pb-3 text-sm font-medium text-gray-500">
+                        Subject
+                      </th>
+                      <th className="pb-3 text-sm font-medium text-gray-500">
+                        Date
+                      </th>
+                      <th className="pb-3 text-sm font-medium text-gray-500">
+                        Time
+                      </th>
+                      <th className="pb-3 text-sm font-medium text-gray-500">
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {meetings.map((meeting) => (
+                      <tr
+                        key={meeting._id}
+                        className="border-b border-gray-100 last:border-0"
+                      >
+                        <td className="py-4">
+                          <div>
+                            <p className="font-medium text-gray-900">
+                              {meeting.name}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {meeting.email}
+                            </p>
+                          </div>
+                        </td>
+
+                        <td className="py-4 text-sm text-gray-700">
+                          {meeting.subject}
+                        </td>
+
+                        <td className="py-4 text-sm text-gray-700">
+                          {meeting.date}
+                        </td>
+
+                        <td className="py-4 text-sm text-gray-700">
+                          {meeting.time}
+                        </td>
+
+                        <td className="py-4">
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-xs font-medium ${
+                              meeting.status === "Pending"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : meeting.status === "Confirmed"
+                                  ? "bg-blue-100 text-blue-700"
+                                  : meeting.status === "Completed"
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-red-100 text-red-700"
+                            }`}
+                          >
+                            {meeting.status}
+                          </span>
                         </td>
                       </tr>
                     ))}
