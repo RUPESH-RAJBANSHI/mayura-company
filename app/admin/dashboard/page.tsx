@@ -16,6 +16,7 @@ type Stats = {
   totalQueries: number;
   totalMeetings: number;
   totalPartnerships: number;
+  totalApplications: number;
 };
 type Query = {
   _id: string;
@@ -26,6 +27,17 @@ type Query = {
   status: "New" | "Read" | "Replied";
   createdAt: string;
 };
+type Application = {
+  _id: string;
+  applicantName: string;
+  email: string;
+  phone: string;
+  status: "Pending" | "Reviewed" | "Shortlisted" | "Rejected";
+  createdAt: string;
+  career?: {
+    title: string;
+  };
+};
 
 export default function AdminDashboard() {
   const [admins, setAdmins] = useState<Admin[]>([]);
@@ -35,11 +47,14 @@ export default function AdminDashboard() {
   const [statsLoading, setStatsLoading] = useState(true);
   const [queries, setQueries] = useState<Query[]>([]);
   const [queriesLoading, setQueriesLoading] = useState(true);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [applicationsLoading, setApplicationsLoading] = useState(true);
 
   useEffect(() => {
     fetchAdmins();
     fetchStats();
     fetchQueries();
+    fetchApplications();
   }, []);
 
   const fetchAdmins = async () => {
@@ -130,6 +145,31 @@ export default function AdminDashboard() {
       console.error("Failed to fetch queries:", error);
     } finally {
       setQueriesLoading(false);
+    }
+  };
+  const fetchApplications = async () => {
+    try {
+      setApplicationsLoading(true);
+
+      const response = await fetch("/api/admin/stats", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (response.status === 401) {
+        window.location.href = "/admin/login";
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setApplications(data.recentApplications || []);
+      }
+    } catch (error) {
+      console.error("Failed to fetch applications:", error);
+    } finally {
+      setApplicationsLoading(false);
     }
   };
 
@@ -495,6 +535,89 @@ export default function AdminDashboard() {
 
                         <td className="py-4 text-sm text-gray-600 whitespace-nowrap">
                           {new Date(query.createdAt).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Recent Applications */}
+          <div className="mt-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">
+                  Recent Applications
+                </h2>
+
+                <p className="mt-1 text-sm text-gray-500">
+                  Latest job applications from candidates
+                </p>
+              </div>
+
+              <a
+                href="/admin/applications"
+                className="text-sm font-semibold text-blue-600 hover:text-blue-800"
+              >
+                View All →
+              </a>
+            </div>
+
+            {applicationsLoading ? (
+              <p className="text-sm text-gray-500">Loading applications...</p>
+            ) : applications.length === 0 ? (
+              <p className="text-sm text-gray-500">No applications found.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-gray-200 text-sm text-gray-500">
+                      <th className="py-3 pr-4">Applicant</th>
+                      <th className="py-3 pr-4">Position</th>
+                      <th className="py-3 pr-4">Email</th>
+                      <th className="py-3 pr-4">Status</th>
+                      <th className="py-3">Date</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {applications.map((application) => (
+                      <tr
+                        key={application._id}
+                        className="border-b border-gray-100 hover:bg-gray-50"
+                      >
+                        <td className="py-4 pr-4 font-medium text-gray-800">
+                          {application.applicantName}
+                        </td>
+
+                        <td className="py-4 pr-4 text-sm text-gray-700">
+                          {application.career?.title || "Unknown Position"}
+                        </td>
+
+                        <td className="py-4 pr-4 text-sm text-gray-600">
+                          {application.email}
+                        </td>
+
+                        <td className="py-4 pr-4">
+                          <span
+                            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                              application.status === "Pending"
+                                ? "bg-yellow-100 text-yellow-700"
+                                : application.status === "Reviewed"
+                                  ? "bg-blue-100 text-blue-700"
+                                  : application.status === "Shortlisted"
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-red-100 text-red-700"
+                            }`}
+                          >
+                            {application.status}
+                          </span>
+                        </td>
+
+                        <td className="whitespace-nowrap py-4 text-sm text-gray-600">
+                          {new Date(application.createdAt).toLocaleDateString()}
                         </td>
                       </tr>
                     ))}

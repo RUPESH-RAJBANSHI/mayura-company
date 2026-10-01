@@ -7,10 +7,12 @@ import Product from "../../../config/models/Product";
 import Query from "../../../config/models/Query";
 import Meeting from "../../../config/models/Meeting";
 import Partnership from "../../../config/models/Partnership";
+import Application from "../../../config/models/Application";
+import Career from "../../../config/models/Career";
 
 export async function GET(request) {
   try {
-    //Check admin authentication
+    // Check admin authentication
     const token = request.cookies.get("adminToken")?.value;
 
     if (!token) {
@@ -23,7 +25,7 @@ export async function GET(request) {
       );
     }
 
-    //Verify JWT token
+    // Verify JWT token
     try {
       jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
@@ -36,10 +38,10 @@ export async function GET(request) {
       );
     }
 
-    //Connect to MongoDB
+    // Connect to MongoDB
     await connectDB();
 
-    // 4. Get live statistics from MongoDB
+    // Get dashboard statistics
     const [
       totalAdmins,
       activeAdmins,
@@ -47,6 +49,7 @@ export async function GET(request) {
       totalQueries,
       totalMeetings,
       totalPartnerships,
+      totalApplications,
     ] = await Promise.all([
       Admin.countDocuments(),
       Admin.countDocuments({ status: true }),
@@ -54,9 +57,20 @@ export async function GET(request) {
       Query.countDocuments(),
       Meeting.countDocuments(),
       Partnership.countDocuments(),
+      Application.countDocuments(),
     ]);
 
-    //Return dashboard statistics
+    // Get latest 5 applications
+    const recentApplications = await Application.find()
+      .populate({
+        path: "career",
+        select: "title",
+        model: "Career",
+      })
+      .sort({ createdAt: -1 })
+      .limit(5);
+
+    // Return dashboard statistics
     return NextResponse.json(
       {
         success: true,
@@ -67,7 +81,9 @@ export async function GET(request) {
           totalQueries,
           totalMeetings,
           totalPartnerships,
+          totalApplications,
         },
+        recentApplications,
       },
       { status: 200 },
     );
