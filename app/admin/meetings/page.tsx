@@ -20,6 +20,9 @@ export default function MeetingsPage() {
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMeeting, setSelectedMeeting] = useState<Meeting | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [dateFilter, setDateFilter] = useState("All");
 
   // Fetch meetings
   const fetchMeetings = async () => {
@@ -116,6 +119,33 @@ export default function MeetingsPage() {
   };
 
   const totalMeetings = meetings.length;
+
+  const filteredMeetings = meetings.filter((meeting) => {
+    const search = searchTerm.toLowerCase();
+
+    const matchesSearch =
+      meeting.name.toLowerCase().includes(search) ||
+      meeting.email.toLowerCase().includes(search) ||
+      meeting.subject.toLowerCase().includes(search) ||
+      (meeting.company || "").toLowerCase().includes(search);
+
+    const matchesStatus =
+      statusFilter === "All" || meeting.status === statusFilter;
+
+    const today = new Date();
+    const meetingDate = new Date(meeting.date);
+
+    today.setHours(0, 0, 0, 0);
+    meetingDate.setHours(0, 0, 0, 0);
+
+    const matchesDate =
+      dateFilter === "All" ||
+      (dateFilter === "Today" && meetingDate.getTime() === today.getTime()) ||
+      (dateFilter === "Upcoming" && meetingDate > today) ||
+      (dateFilter === "Past" && meetingDate < today);
+
+    return matchesSearch && matchesStatus && matchesDate;
+  });
 
   const pendingMeetings = meetings.filter(
     (meeting) => meeting.status === "Pending",
@@ -223,15 +253,44 @@ export default function MeetingsPage() {
 
       {/* Meetings Table */}
       <div className="rounded-xl bg-white shadow-sm border border-gray-200">
+        {/* Table Header */}
         <div className="p-5 border-b border-gray-200">
-          <h2 className="text-xl font-semibold text-gray-900">
-            Meeting Requests
-          </h2>
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <h2 className="text-xl font-semibold text-gray-900">
+              Meeting Requests
+            </h2>
+
+            <div className="flex flex-col gap-3 sm:flex-row text-gray-600">
+              <input
+                type="text"
+                placeholder="Search name, email, subject..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:w-72"
+              />
+
+              <select
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="rounded-lg border border-gray-300 px-4 py-2 text-sm outline-none focus:border-blue-500 text-gray-600"
+              >
+                <option value="All">All Dates</option>
+                <option value="Today">Today</option>
+                <option value="Upcoming">Upcoming</option>
+                <option value="Past">Past</option>
+              </select>
+            </div>
+          </div>
         </div>
 
-        {meetings.length === 0 ? (
+        {/* Table Content */}
+        {filteredMeetings.length === 0 ? (
           <div className="p-10 text-center">
-            <p className="text-gray-500">No meeting requests found.</p>
+            <p className="text-gray-500">
+              {meetings.length === 0
+                ? "No meeting requests found."
+                : "No meetings match your search or selected filter."}
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -269,7 +328,7 @@ export default function MeetingsPage() {
               </thead>
 
               <tbody className="divide-y divide-gray-200">
-                {meetings.map((meeting) => (
+                {filteredMeetings.map((meeting) => (
                   <tr key={meeting._id} className="hover:bg-gray-50">
                     <td className="px-5 py-4">
                       <p className="font-medium text-gray-900">
@@ -307,11 +366,8 @@ export default function MeetingsPage() {
                         )}`}
                       >
                         <option value="Pending">Pending</option>
-
                         <option value="Confirmed">Confirmed</option>
-
                         <option value="Completed">Completed</option>
-
                         <option value="Cancelled">Cancelled</option>
                       </select>
                     </td>
@@ -364,20 +420,20 @@ export default function MeetingsPage() {
               <div>
                 <p className="text-sm font-medium text-gray-500">Name</p>
 
-                <p className="mt-1 text-gray-900">{selectedMeeting.name}</p>
+                <p className="mt-1 text-gray-900">{selectedMeeting!.name}</p>
               </div>
 
               <div>
                 <p className="text-sm font-medium text-gray-500">Email</p>
 
-                <p className="mt-1 text-gray-900">{selectedMeeting.email}</p>
+                <p className="mt-1 text-gray-900">{selectedMeeting!.email}</p>
               </div>
 
               <div>
                 <p className="text-sm font-medium text-gray-500">Phone</p>
 
                 <p className="mt-1 text-gray-900">
-                  {selectedMeeting.phone || "Not provided"}
+                  {selectedMeeting!.phone || "Not provided"}
                 </p>
               </div>
 
@@ -385,7 +441,7 @@ export default function MeetingsPage() {
                 <p className="text-sm font-medium text-gray-500">Company</p>
 
                 <p className="mt-1 text-gray-900">
-                  {selectedMeeting.company || "Not provided"}
+                  {selectedMeeting!.company || "Not provided"}
                 </p>
               </div>
 
@@ -395,7 +451,7 @@ export default function MeetingsPage() {
                     Meeting Date
                   </p>
 
-                  <p className="mt-1 text-gray-900">{selectedMeeting.date}</p>
+                  <p className="mt-1 text-gray-900">{selectedMeeting!.date}</p>
                 </div>
 
                 <div>
@@ -403,21 +459,21 @@ export default function MeetingsPage() {
                     Meeting Time
                   </p>
 
-                  <p className="mt-1 text-gray-900">{selectedMeeting.time}</p>
+                  <p className="mt-1 text-gray-900">{selectedMeeting!.time}</p>
                 </div>
               </div>
 
               <div>
                 <p className="text-sm font-medium text-gray-500">Subject</p>
 
-                <p className="mt-1 text-gray-900">{selectedMeeting.subject}</p>
+                <p className="mt-1 text-gray-900">{selectedMeeting!.subject}</p>
               </div>
 
               <div>
                 <p className="text-sm font-medium text-gray-500">Message</p>
 
                 <p className="mt-1 whitespace-pre-wrap text-gray-900">
-                  {selectedMeeting.message || "No message provided"}
+                  {selectedMeeting!.message || "No message provided"}
                 </p>
               </div>
 
@@ -426,15 +482,15 @@ export default function MeetingsPage() {
 
                 <div className="mt-2">
                   <select
-                    value={selectedMeeting.status}
+                    value={selectedMeeting!.status}
                     onChange={(e) =>
                       updateStatus(
-                        selectedMeeting._id,
+                        selectedMeeting!._id,
                         e.target.value as Meeting["status"],
                       )
                     }
                     className={`rounded-full px-3 py-1.5 text-sm font-medium border-0 outline-none cursor-pointer ${getStatusClass(
-                      selectedMeeting.status,
+                      selectedMeeting!.status,
                     )}`}
                   >
                     <option value="Pending">Pending</option>

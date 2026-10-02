@@ -51,6 +51,17 @@ type Meeting = {
   createdAt: string;
 };
 
+type Product = {
+  _id: string;
+  name: string;
+  description: string;
+  category: string;
+  technologies: string[];
+  productUrl?: string;
+  status: string;
+  createdAt: string;
+};
+
 export default function AdminDashboard() {
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,6 +74,8 @@ export default function AdminDashboard() {
   const [applicationsLoading, setApplicationsLoading] = useState(true);
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [meetingsLoading, setMeetingsLoading] = useState(true);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [productsLoading, setProductsLoading] = useState(true);
 
   useEffect(() => {
     fetchAdmins();
@@ -70,6 +83,7 @@ export default function AdminDashboard() {
     fetchQueries();
     fetchApplications();
     fetchMeetings();
+    fetchProducts();
   }, []);
 
   const fetchAdmins = async () => {
@@ -210,6 +224,32 @@ export default function AdminDashboard() {
       console.error("Failed to fetch meetings:", error);
     } finally {
       setMeetingsLoading(false);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      setProductsLoading(true);
+
+      const response = await fetch("/api/products", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (response.status === 401) {
+        window.location.href = "/admin/login";
+        return;
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setProducts((data.products || []).slice(0, 5));
+      }
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+    } finally {
+      setProductsLoading(false);
     }
   };
 
@@ -775,6 +815,103 @@ export default function AdminDashboard() {
 
                         <td className="whitespace-nowrap py-4 text-sm text-gray-600">
                           {new Date(application.createdAt).toLocaleDateString()}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          {/* Recent Products */}
+          <div className="mt-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
+            <div className="mb-6 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold text-gray-800">
+                  Recent Products
+                </h2>
+
+                <p className="mt-1 text-sm text-gray-500">
+                  Latest software products added to your company
+                </p>
+              </div>
+
+              <a
+                href="/admin/products"
+                className="text-sm font-semibold text-blue-600 hover:text-blue-800"
+              >
+                View All →
+              </a>
+            </div>
+
+            {productsLoading ? (
+              <p className="text-sm text-gray-500">Loading products...</p>
+            ) : products.length === 0 ? (
+              <p className="text-sm text-gray-500">No products found.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="border-b border-gray-200 text-sm text-gray-500">
+                      <th className="py-3 pr-4">Product</th>
+                      <th className="py-3 pr-4">Category</th>
+                      <th className="py-3 pr-4">Technologies</th>
+                      <th className="py-3 pr-4">Status</th>
+                      <th className="py-3">Date</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {products.map((product) => (
+                      <tr
+                        key={product._id}
+                        className="border-b border-gray-100 hover:bg-gray-50"
+                      >
+                        <td className="py-4 pr-4">
+                          <p className="font-medium text-gray-800">
+                            {product.name}
+                          </p>
+
+                          <p className="mt-1 max-w-xs truncate text-sm text-gray-500">
+                            {product.description}
+                          </p>
+                        </td>
+
+                        <td className="py-4 pr-4 text-sm text-gray-700">
+                          {product.category}
+                        </td>
+
+                        <td className="py-4 pr-4">
+                          <div className="flex flex-wrap gap-1">
+                            {Array.isArray(product.technologies) &&
+                              product.technologies
+                                .slice(0, 3)
+                                .map((technology) => (
+                                  <span
+                                    key={technology}
+                                    className="rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-700"
+                                  >
+                                    {technology}
+                                  </span>
+                                ))}
+                          </div>
+                        </td>
+
+                        <td className="py-4 pr-4">
+                          <span
+                            className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                              product.status === "Active"
+                                ? "bg-green-100 text-green-700"
+                                : "bg-gray-100 text-gray-700"
+                            }`}
+                          >
+                            {product.status}
+                          </span>
+                        </td>
+
+                        <td className="whitespace-nowrap py-4 text-sm text-gray-600">
+                          {new Date(product.createdAt).toLocaleDateString()}
                         </td>
                       </tr>
                     ))}
