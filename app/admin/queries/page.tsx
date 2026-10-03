@@ -16,6 +16,9 @@ type Query = {
 export default function QueriesPage() {
   const [queries, setQueries] = useState<Query[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const queriesPerPage = 10;
 
   const [filterStatus, setFilterStatus] = useState<
     "All" | "New" | "Read" | "Replied"
@@ -156,10 +159,28 @@ export default function QueriesPage() {
     (query) => query.status === "Replied",
   ).length;
 
-  const filteredQueries =
-    filterStatus === "All"
-      ? queries
-      : queries.filter((query) => query.status === filterStatus);
+  const filteredQueries = queries.filter((query) => {
+    const matchesStatus =
+      filterStatus === "All" || query.status === filterStatus;
+
+    const search = searchTerm.toLowerCase().trim();
+
+    const matchesSearch =
+      query.name.toLowerCase().includes(search) ||
+      query.email.toLowerCase().includes(search) ||
+      query.subject.toLowerCase().includes(search);
+
+    return matchesStatus && matchesSearch;
+  });
+
+  const totalPages = Math.ceil(filteredQueries.length / queriesPerPage);
+
+  const startIndex = (currentPage - 1) * queriesPerPage;
+
+  const paginatedQueries = filteredQueries.slice(
+    startIndex,
+    startIndex + queriesPerPage,
+  );
 
   const getStatusClass = (status: Query["status"]) => {
     if (status === "New") {
@@ -233,29 +254,42 @@ export default function QueriesPage() {
         <div className="flex flex-col gap-4 border-b border-gray-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-lg font-bold text-gray-900">Received Queries</h2>
 
-          <div className="flex items-center gap-2">
-            <label
-              htmlFor="statusFilter"
-              className="text-sm font-medium text-gray-600"
-            >
-              Filter:
-            </label>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <input
+              type="text"
+              placeholder="Search name, email, or subject..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200 sm:w-72"
+            />
 
-            <select
-              id="statusFilter"
-              value={filterStatus}
-              onChange={(e) =>
-                setFilterStatus(
-                  e.target.value as "All" | "New" | "Read" | "Replied",
-                )
-              }
-              className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
-            >
-              <option value="All">All Queries</option>
-              <option value="New">New</option>
-              <option value="Read">Read</option>
-              <option value="Replied">Replied</option>
-            </select>
+            <div className="flex items-center gap-2">
+              <label
+                htmlFor="statusFilter"
+                className="text-sm font-medium text-gray-600"
+              >
+                Filter:
+              </label>
+
+              <select
+                id="statusFilter"
+                value={filterStatus}
+                onChange={(e) =>
+                  setFilterStatus(
+                    e.target.value as "All" | "New" | "Read" | "Replied",
+                  )
+                }
+                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-200"
+              >
+                <option value="All">All Queries</option>
+                <option value="New">New</option>
+                <option value="Read">Read</option>
+                <option value="Replied">Replied</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -305,7 +339,7 @@ export default function QueriesPage() {
               </thead>
 
               <tbody className="divide-y divide-gray-200">
-                {filteredQueries.map((query) => (
+                {paginatedQueries.map((query) => (
                   <tr
                     key={query._id}
                     className={`hover:bg-gray-50 ${
@@ -347,13 +381,35 @@ export default function QueriesPage() {
                     </td>
 
                     <td className="px-5 py-4">
-                      <div className="flex justify-end gap-2">
+                      <div className="flex flex-wrap justify-end gap-2">
                         <button
                           onClick={() => handleView(query)}
                           className="rounded-lg bg-blue-50 px-3 py-2 text-sm font-semibold text-blue-600 hover:bg-blue-100"
                         >
                           View
                         </button>
+
+                        {query.status === "New" && (
+                          <button
+                            onClick={() =>
+                              handleStatusChange(query._id, "Read")
+                            }
+                            className="rounded-lg bg-yellow-50 px-3 py-2 text-sm font-semibold text-yellow-700 hover:bg-yellow-100"
+                          >
+                            Mark as Read
+                          </button>
+                        )}
+
+                        {query.status !== "Replied" && (
+                          <button
+                            onClick={() =>
+                              handleStatusChange(query._id, "Replied")
+                            }
+                            className="rounded-lg bg-green-50 px-3 py-2 text-sm font-semibold text-green-700 hover:bg-green-100"
+                          >
+                            Mark as Replied
+                          </button>
+                        )}
 
                         <button
                           onClick={() => handleDelete(query._id)}
@@ -369,6 +425,42 @@ export default function QueriesPage() {
             </table>
           </div>
         )}
+      </div>
+
+      {/* Pagination */}
+      <div className="mt-5 flex flex-col items-center justify-between gap-4 sm:flex-row">
+        <p className="text-sm text-gray-600">
+          {filteredQueries.length === 0
+            ? "No queries to display"
+            : `Showing ${startIndex + 1}–${Math.min(
+                startIndex + queriesPerPage,
+                filteredQueries.length,
+              )} of ${filteredQueries.length} queries`}
+        </p>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+            disabled={currentPage === 1}
+            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Previous
+          </button>
+
+          <span className="px-3 text-sm text-gray-700">
+            Page {totalPages === 0 ? 0 : currentPage} of {totalPages}
+          </span>
+
+          <button
+            onClick={() =>
+              setCurrentPage((page) => Math.min(totalPages, page + 1))
+            }
+            disabled={currentPage >= totalPages || totalPages === 0}
+            className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Next
+          </button>
+        </div>
       </div>
 
       {/* View Query Modal */}
